@@ -1,7 +1,49 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Mail, Phone, MapPin, Send } from 'lucide-react';
+import { Mail, Phone, MapPin, Send, Loader2, CheckCircle, XCircle } from 'lucide-react';
 
 const Contact = () => {
+    const [formState, setFormState] = useState({
+        name: '',
+        phone: '',
+        email: '',
+        message: ''
+    });
+    const [status, setStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        setFormState({
+            ...formState,
+            [e.target.name]: e.target.value
+        });
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setStatus('submitting');
+
+        try {
+            const response = await fetch("https://formsubmit.co/ajax/mad4113633@gmail.com", {
+                method: "POST",
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(formState)
+            });
+
+            if (response.ok) {
+                setStatus('success');
+                setFormState({ name: '', phone: '', email: '', message: '' });
+            } else {
+                setStatus('error');
+            }
+        } catch (error) {
+            console.error(error);
+            setStatus('error');
+        }
+    };
+
     return (
         <section id="contact" className="py-24 relative overflow-hidden" dir="rtl">
             {/* Background Elements */}
@@ -60,13 +102,18 @@ const Contact = () => {
                         initial={{ opacity: 0, x: -50 }}
                         whileInView={{ opacity: 1, x: 0 }}
                         viewport={{ once: true }}
-                        className="bg-white/5 border border-white/10 p-8 rounded-3xl backdrop-blur-sm"
+                        onSubmit={handleSubmit}
+                        className="bg-white/5 border border-white/10 p-8 rounded-3xl backdrop-blur-sm relative"
                     >
                         <div className="space-y-6">
                             <div>
                                 <label className="block text-sm font-medium text-gray-300 mb-2">איך לפנות אליך?</label>
                                 <input
                                     type="text"
+                                    name="name"
+                                    value={formState.name}
+                                    onChange={handleChange}
+                                    required
                                     placeholder="שם מלא"
                                     className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-primary transition-colors"
                                 />
@@ -76,6 +123,10 @@ const Contact = () => {
                                 <label className="block text-sm font-medium text-gray-300 mb-2">טלפון ליצירת קשר</label>
                                 <input
                                     type="tel"
+                                    name="phone"
+                                    value={formState.phone}
+                                    onChange={handleChange}
+                                    required
                                     placeholder="050-0000000"
                                     className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-primary transition-colors"
                                 />
@@ -85,6 +136,10 @@ const Contact = () => {
                                 <label className="block text-sm font-medium text-gray-300 mb-2">כתובת מייל</label>
                                 <input
                                     type="email"
+                                    name="email"
+                                    value={formState.email}
+                                    onChange={handleChange}
+                                    required
                                     placeholder="your@email.com"
                                     className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-primary transition-colors"
                                 />
@@ -94,14 +149,55 @@ const Contact = () => {
                                 <label className="block text-sm font-medium text-gray-300 mb-2">על מה נדבר?</label>
                                 <textarea
                                     rows={4}
+                                    name="message"
+                                    value={formState.message}
+                                    onChange={handleChange}
+                                    required
                                     placeholder="תאר בקצרה את הצורך או האתגר..."
                                     className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-primary transition-colors resize-none"
                                 ></textarea>
                             </div>
 
-                            <button className="w-full bg-gradient-to-r from-primary to-secondary py-4 rounded-xl font-bold text-lg hover:shadow-[0_0_20px_rgba(6,182,212,0.4)] transition-shadow flex items-center justify-center gap-2">
-                                שלח הודעה <Send className="w-5 h-5" />
+                            <button
+                                type="submit"
+                                disabled={status === 'submitting' || status === 'success'}
+                                className={`w-full py-4 rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-2
+                  ${status === 'success'
+                                        ? 'bg-green-600 text-white cursor-default'
+                                        : 'bg-gradient-to-r from-primary to-secondary hover:shadow-[0_0_20px_rgba(6,182,212,0.4)]'
+                                    }
+                  ${status === 'submitting' ? 'opacity-75 cursor-wait' : ''}
+                `}
+                            >
+                                {status === 'submitting' && (
+                                    <>
+                                        <Loader2 className="w-5 h-5 animate-spin" />
+                                        שולח...
+                                    </>
+                                )}
+                                {status === 'success' && (
+                                    <>
+                                        <CheckCircle className="w-5 h-5" />
+                                        נשלח בהצלחה!
+                                    </>
+                                )}
+                                {status === 'error' && (
+                                    <>
+                                        <XCircle className="w-5 h-5" />
+                                        שגיאה, נסה שוב
+                                    </>
+                                )}
+                                {status === 'idle' && (
+                                    <>
+                                        שלח הודעה <Send className="w-5 h-5" />
+                                    </>
+                                )}
                             </button>
+
+                            {/* Hidden Input for FormSubmit Configuration */}
+                            <input type="hidden" name="_subject" value="New submission from Sync Up Website!" />
+                            <input type="hidden" name="_template" value="table" />
+                            <input type="hidden" name="_captcha" value="false" />
                         </div>
                     </motion.form>
 

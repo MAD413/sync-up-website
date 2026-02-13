@@ -35,6 +35,7 @@ const Contact = () => {
             if (response.ok) {
                 setStatus('success');
                 setFormState({ name: '', phone: '', email: '', message: '' });
+                setTimeout(() => setStatus('idle'), 3000);
             } else {
                 setStatus('error');
             }
@@ -196,7 +197,7 @@ const Contact = () => {
 
                             {/* Hidden Input for FormSubmit Configuration */}
                             <input type="hidden" name="_subject" value="New submission from Sync Up Website!" />
-                            <input type="hidden" name="_template" value="table" />
+                            <input type="hidden" name="_template" value="box" />
                             <input type="hidden" name="_captcha" value="false" />
                         </div>
                     </motion.form>
